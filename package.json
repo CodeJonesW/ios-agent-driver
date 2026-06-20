@@ -1,0 +1,48 @@
+{
+  "name": "ios-agent-driver",
+  "version": "0.1.0",
+  "description": "MCP server that lets an AI agent drive the iOS Simulator in a loop — accessibility-tree-first perception with screenshot fallback, built on simctl + idb.",
+  "type": "module",
+  "bin": {
+    "ios-agent-driver": "dist/server.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "prepare": "tsc"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.0"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ios",
+    "simulator",
+    "testing",
+    "automation",
+    "agent",
+    "idb",
+    "xcuitest",
+    "accessibility"
+  ],
+  "license": "MIT",
+  "author": "CodeJonesW",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CodeJonesW/ios-agent-driver.git"
+  }
+}
