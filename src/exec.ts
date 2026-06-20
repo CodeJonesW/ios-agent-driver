@@ -64,6 +64,10 @@ export function runBinary(
       { timeout: opts.timeoutMs ?? 60_000, maxBuffer: MAX_BUFFER, encoding: "buffer" },
       (err, stdout, stderr) => {
         if (err) {
+          const code = (err as NodeJS.ErrnoException).code;
+          if (code === "ENOENT") {
+            return reject(new CommandError(`${file} ${args.join(" ")}`, null, `command not found: ${file}`));
+          }
           const exit = typeof (err as { code?: unknown }).code === "number" ? ((err as { code: number }).code) : null;
           return reject(new CommandError(`${file} ${args.join(" ")}`, exit, (stderr as Buffer).toString("utf8") || err.message));
         }
