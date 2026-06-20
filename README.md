@@ -36,10 +36,13 @@ Agent (Claude / any MCP client)
 - macOS with **Xcode** (provides `xcrun simctl`)
 - **[idb](https://fbidb.io)** for UI perception and actions:
   ```sh
-  brew install idb-companion
-  pip3 install fb-idb
-  idb list-targets   # confirm it sees your booted sim
+  brew tap facebook/fb && brew trust facebook/fb
+  brew install facebook/fb/idb-companion   # source build — needs current Xcode Command Line Tools
+  pip3 install fb-idb                       # the `idb` CLI; use pipx/venv if pip is externally-managed
+  idb list-targets                          # confirm it sees your booted sim
   ```
+  If the companion build errors with “Command Line Tools are too outdated”, update
+  them (System Settings › Software Update, or `xcode-select --install`).
   Lifecycle tools work without idb; `describe_ui` / `tap` / `type_text` / `swipe`
   require it and will tell you how to install it if it's missing.
 - **Node.js ≥ 18**
