@@ -169,8 +169,14 @@ tool(
   async ({ interactive_only, udid }) => {
     const target = await resolveUdid(udid);
     const elements = await describeUi(target);
-    const filtered = interactive_only ? elements.filter((e) => e.label) : elements;
-    return json({ count: filtered.length, total: elements.length, elements: filtered });
+    // Drop zero-area nodes (off-screen / structural) — they can't be tapped and
+    // only inflate the tree the agent must read each loop step. interactive_only
+    // narrows further to labeled elements. tap-by-label still sees the full tree
+    // (it calls describeUi directly), so this trims the agent view only.
+    const visible = elements.filter((e) => e.frame && e.frame.width > 0 && e.frame.height > 0);
+    const filtered = interactive_only ? visible.filter((e) => e.label) : visible;
+    // Compact JSON (not pretty-printed) — fewer tokens per observation.
+    return ok(JSON.stringify({ count: filtered.length, total: elements.length, elements: filtered }));
   },
 );
 

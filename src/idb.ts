@@ -34,26 +34,15 @@ async function idbRun(args: string[], opts?: { timeoutMs?: number }): Promise<Ex
   }
 }
 
-/** Verify idb is installed and can see the target. Throws a remediation error otherwise. */
-export async function ensureIdb(udid: string): Promise<void> {
-  const { stdout } = await idbRun(["list-targets", "--json"]);
-  const lines = stdout.trim().split("\n").filter(Boolean);
-  let targets: Array<{ udid?: string }> = [];
-  try {
-    targets = lines.map((l) => JSON.parse(l) as { udid?: string });
-  } catch {
-    // Non-JSON output (idb version drift) — not fatal; let the actual command try.
-    return;
-  }
-  if (!targets.some((t) => t.udid === udid)) {
-    // Not connected yet — idb auto-connects booted sims on first command, so
-    // this is informational, not fatal. We let the actual command try.
-  }
-}
-
-/** Full accessibility tree of the current screen, normalized. */
+/**
+ * Full accessibility tree of the current screen, normalized.
+ *
+ * No `list-targets` preflight: it costs ~0.75s (vs ~0.19s for the describe
+ * itself) and its result was discarded. idb auto-connects the companion on the
+ * first real command, and idbRun already converts a missing-binary failure into
+ * the actionable IdbUnavailableError — so the availability check is free here.
+ */
 export async function describeUi(udid: string): Promise<UIElement[]> {
-  await ensureIdb(udid);
   const { stdout } = await idbRun(["ui", "describe-all", "--udid", udid, "--json"]);
   const trimmed = stdout.trim();
   if (!trimmed) return [];
