@@ -31,17 +31,25 @@ The lever is **fewer, smaller steps** — which is exactly what a precomputed ma
 
 ## The solution: three layers
 
-### 1. Identity — stable, code-owned ids
+### 1. Identity — a stable, code-owned hook
 
-Give the controls and screens you navigate a stable `accessibilityIdentifier`
-following a naming contract (see
-[accessibility-identifier-convention.md](accessibility-identifier-convention.md)).
-Labels are user-facing text — they change with copy edits and localization, and
-they collide. Identifiers are a contract you own in code, so a map keyed on them
-doesn't churn.
+Give the controls and screens you navigate a **stable, code-owned hook** so the
+map keys on something that doesn't drift with layout or visible-text edits.
 
-`ios-agent-driver` surfaces each element's `identifier` in `describe_ui` and lets
-`tap` target `{ identifier }` directly.
+**Which hook depends on your driver** — there are two iOS accessibility trees, and
+they expose different things (see
+[accessibility-identifier-convention.md](accessibility-identifier-convention.md)
+for the full table and the empirical check):
+
+- **idb** (this MCP's backend) snapshots the *runtime* tree, which does **not**
+  expose SwiftUI `.accessibilityIdentifier()`. Drive SwiftUI apps by a stable,
+  code-set **`accessibilityLabel`, scoped to the current screen**.
+- **WebDriverAgent / Appium** (and UIKit apps) expose `accessibilityIdentifier` —
+  there the identifier scheme is the primary, collision-free hook.
+
+Either way the principle is the same: a *code-owned* hook, not visible text the
+designer might reword. `ios-agent-driver` surfaces both `label` and `identifier`
+in `describe_ui`, and `tap` accepts `{ identifier }`, `{ label }`, or `{ x, y }`.
 
 ### 2. Map — a precomputed screen graph
 

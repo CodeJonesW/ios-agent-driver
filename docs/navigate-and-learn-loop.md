@@ -21,6 +21,12 @@ navigate(goal):
   return arrived at dest
 ```
 
+> **Hook:** `tap { identifier: edge.tap }` assumes an identifier-readable driver
+> (WebDriverAgent/Appium, or UIKit). With **idb** driving a SwiftUI app, the map's
+> hook is `label`, so call `tap { label: edge.tap }` and compute `signature`/
+> `whichScreen` from `label`s instead of `identifier`s. The algorithm is identical;
+> only the field changes (follow the map's `hook`).
+
 Key properties:
 
 - **One tap per edge, one cheap signature check between** — not a full

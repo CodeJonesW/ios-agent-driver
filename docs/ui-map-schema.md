@@ -5,6 +5,16 @@ versioned description of an app's navigable screens and how to move between them
 Live it in *your app's* repo so it versions in lockstep with the UI. A runnable
 template is in [../examples/ui-map.example.json](../examples/ui-map.example.json).
 
+> **What the string values are — labels vs identifiers.** The `signature` and
+> `edges[].tap` values are whatever **hook your driver can read** (see the
+> [convention's driver caveat](accessibility-identifier-convention.md)). With
+> **idb** driving a SwiftUI app, use **`accessibilityLabel`s** (e.g. `"Menu"`,
+> `"History"`) — idb can't see SwiftUI identifiers. With **WebDriverAgent/Appium**
+> or a UIKit app, use **identifiers** (e.g. `"nav.home.menu"`). The example below
+> uses identifiers; a label-based map is identical with label strings instead.
+> Add `"hook": "label"` or `"hook": "identifier"` at the top so a reader knows
+> which channel the strings are, and so `tap` is called with the right argument.
+
 ## Shape
 
 ```jsonc
