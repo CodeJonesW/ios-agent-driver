@@ -12,7 +12,9 @@ function toFrame(raw: unknown): UIElement["frame"] {
   const f = raw as Record<string, unknown>;
   const x = Number(f.x), y = Number(f.y), width = Number(f.width), height = Number(f.height);
   if ([x, y, width, height].some((n) => Number.isNaN(n))) return null;
-  return { x, y, width, height };
+  // Round to whole points — sub-pixel noise (e.g. 434.00000000000006) only
+  // bloats the tree the agent reads and never changes a tap target.
+  return { x: Math.round(x), y: Math.round(y), width: Math.round(width), height: Math.round(height) };
 }
 
 /**
