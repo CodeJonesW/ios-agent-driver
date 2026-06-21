@@ -1,5 +1,7 @@
 /** A normalized UI element, decoupled from idb's raw field names. */
 export interface UIElement {
+  /** accessibilityIdentifier (idb's AXUniqueId) — a stable, code-owned id. */
+  identifier: string | null;
   label: string | null;
   type: string | null;
   value: string | null;
@@ -25,10 +27,12 @@ function toFrame(raw: unknown): UIElement["frame"] {
 export function normalize(raw: unknown[]): UIElement[] {
   return raw.map((item) => {
     const e = item as Record<string, unknown>;
+    const identifier = (e.AXUniqueId ?? e.identifier ?? null) as string | null;
     const label = (e.AXLabel ?? e.label ?? e.title ?? null) as string | null;
     const type = (e.type ?? e.role ?? e.role_description ?? null) as string | null;
     const value = (e.AXValue ?? e.value ?? null) as string | null;
     return {
+      identifier: identifier && String(identifier).length > 0 ? String(identifier) : null,
       label: label && String(label).length > 0 ? String(label) : null,
       type: type ? String(type) : null,
       value: value != null ? String(value) : null,
@@ -59,6 +63,36 @@ export function findByLabel(elements: UIElement[], query: string): LabelMatch | 
     if (pick) return { element: pick, center: center(pick) };
   }
   return null;
+}
+
+/**
+ * Find a tappable element by accessibilityIdentifier. Identifiers are stable,
+ * code-owned codes, so matching is EXACT (then case-insensitive exact as a
+ * lenient fallback) — never substring, so "screen.home" can't match
+ * "screen.home.menu". Prefers enabled elements with a usable frame.
+ */
+export function findByIdentifier(elements: UIElement[], id: string): LabelMatch | null {
+  const withFrame = elements.filter((e) => e.frame && e.identifier);
+  const exact = withFrame.filter((e) => e.identifier === id);
+  const ciEqual = withFrame.filter((e) => e.identifier!.toLowerCase() === id.toLowerCase());
+
+  for (const bucket of [exact, ciEqual]) {
+    const pick = bucket.find((e) => e.enabled) ?? bucket[0];
+    if (pick) return { element: pick, center: center(pick) };
+  }
+  return null;
+}
+
+/** Identifiers closest to a failed query, for actionable "did you mean" errors. */
+export function nearestIdentifiers(elements: UIElement[], id: string, limit = 8): string[] {
+  const q = id.toLowerCase();
+  const ids = elements.map((e) => e.identifier).filter((i): i is string => !!i);
+  const unique = Array.from(new Set(ids));
+  return unique
+    .map((i) => ({ i, score: i.toLowerCase().includes(q) || q.includes(i.toLowerCase()) ? 0 : 1 }))
+    .sort((a, b) => a.score - b.score)
+    .slice(0, limit)
+    .map((x) => x.i);
 }
 
 export function center(e: UIElement): { x: number; y: number } {

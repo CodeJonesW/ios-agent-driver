@@ -88,9 +88,9 @@ claude mcp add ios-agent-driver -- node /absolute/path/to/ios-agent-driver/dist/
 | `reset_app` | simctl | Uninstall + reinstall for a clean state. |
 | `deeplink` | simctl | Open a URL / universal link. |
 | `set_permission` | simctl | Grant/revoke/reset a privacy permission. |
-| `describe_ui` | idb | **Primary perception** — accessibility tree as JSON. |
+| `describe_ui` | idb | **Primary perception** — accessibility tree as JSON (incl. `identifier`). |
 | `screenshot` | simctl | PNG of the current screen (vision fallback). |
-| `tap` | idb | Tap by accessibility label (preferred) or x,y. |
+| `tap` | idb | Tap by `identifier` (most stable), `label`, or x,y. |
 | `type_text` | idb | Type into the focused field. |
 | `swipe` | idb | Swipe/scroll by direction or coordinates. |
 | `press_button` | idb | Hardware buttons (HOME, LOCK, …). |
@@ -112,6 +112,27 @@ GOAL: "open Settings and confirm Notifications is enabled"
 
 The agent owns the loop and the success predicate; this server provides the
 primitives. That keeps the tool simple and the test logic where it belongs.
+
+## Power-user navigation (navigate by a map, not by re-reading every step)
+
+Perceiving every step is correct but slow: the wall-clock cost of a loop is
+*model round-trips × steps*, not idb. Once an app is more than a couple of screens
+deep, an agent can instead navigate by a **precomputed UI map** — execute a known
+tap sequence with minimal perception, and only re-read the tree when something has
+drifted. The pattern has three layers, each documented so any app can adopt it:
+
+- [docs/power-user-navigation.md](docs/power-user-navigation.md) — the problem and the
+  three-layer solution (Identity → Map → Behavior); when to use it.
+- [docs/accessibility-identifier-convention.md](docs/accessibility-identifier-convention.md)
+  — the `screen.* / nav.* / action.*` naming contract for stable, code-owned ids.
+- [docs/ui-map-schema.md](docs/ui-map-schema.md) — the `ui-map.json` schema
+  (nodes / edges / goals / versioning), with [examples/ui-map.example.json](examples/ui-map.example.json).
+- [docs/navigate-and-learn-loop.md](docs/navigate-and-learn-loop.md) — the
+  `navigate(goal)` + drift-repair algorithm that self-heals the map.
+
+`describe_ui` surfaces each element's `identifier` (the accessibilityIdentifier),
+and `tap` accepts `{ identifier }` — together these make map-based navigation
+deterministic instead of guessing from labels or pixels.
 
 ## Development
 

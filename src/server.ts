@@ -16,7 +16,7 @@ import {
   uninstallApp,
 } from "./simctl.js";
 import { describeUi, pressButton, swipe, tap, typeText, type HardwareButton } from "./idb.js";
-import { center, findByLabel, nearestLabels } from "./ax.js";
+import { findByIdentifier, findByLabel, nearestIdentifiers, nearestLabels } from "./ax.js";
 
 const server = new McpServer({
   name: "ios-agent-driver",
@@ -195,15 +195,30 @@ tool(
 
 tool(
   "tap",
-  "Tap an element by accessibility label (preferred) or by raw x,y coordinate (fallback). Provide either `label` or both `x` and `y`.",
+  "Tap an element by accessibilityIdentifier (most stable — preferred), by accessibility label, or by raw x,y coordinate (fallback). Provide one of: `identifier`, `label`, or both `x` and `y`. Precedence: identifier → label → coordinate.",
   {
+    identifier: z.string().optional().describe("accessibilityIdentifier to match exactly (a stable code-owned id like \"screen.home.menu\")."),
     label: z.string().optional().describe("Accessibility label to match (exact, then case-insensitive, then substring)."),
     x: z.number().optional(),
     y: z.number().optional(),
     ...udidArg,
   },
-  async ({ label, x, y, udid }) => {
+  async ({ identifier, label, x, y, udid }) => {
     const target = await resolveUdid(udid);
+    if (identifier != null) {
+      const elements = await describeUi(target);
+      const match = findByIdentifier(elements, identifier);
+      if (!match) {
+        const hints = nearestIdentifiers(elements, identifier);
+        return fail(
+          `No element matching identifier "${identifier}". Nearest identifiers on screen: ${
+            hints.length ? hints.map((h) => `"${h}"`).join(", ") : "(none with identifiers)"
+          }`,
+        );
+      }
+      await tap(target, match.center.x, match.center.y);
+      return json({ mode: "identifier", tapped: match.element, at: match.center });
+    }
     if (label != null) {
       const elements = await describeUi(target);
       const match = findByLabel(elements, label);
@@ -222,7 +237,7 @@ tool(
       await tap(target, x, y);
       return json({ mode: "coordinate", at: { x, y } });
     }
-    return fail("Provide either `label`, or both `x` and `y`.");
+    return fail("Provide one of: `identifier`, `label`, or both `x` and `y`.");
   },
 );
 

@@ -1,0 +1,50 @@
+{
+  "app": "com.example.app",
+  "appVersion": "1.0.0",
+  "entry": "home",
+  "screens": {
+    "home": {
+      "signature": ["screen.home", "nav.home.menu"],
+      "controls": {
+        "nav.home.menu": "opens the navigation drawer",
+        "nav.home.calendar": "opens the calendar",
+        "nav.home.settings": "opens settings"
+      },
+      "lastVerifiedVersion": "1.0.0"
+    },
+    "drawer": {
+      "signature": ["screen.drawer", "nav.drawer.history"],
+      "controls": {
+        "nav.drawer.history": "go to History",
+        "nav.drawer.profile": "go to Profile"
+      },
+      "lastVerifiedVersion": "1.0.0"
+    },
+    "history": {
+      "signature": ["screen.history"],
+      "controls": {
+        "action.history.close": "dismiss back to home"
+      },
+      "lastVerifiedVersion": "1.0.0"
+    },
+    "profile": {
+      "signature": ["screen.profile"],
+      "controls": {
+        "action.profile.sign-out": "sign out"
+      },
+      "lastVerifiedVersion": "1.0.0"
+    }
+  },
+  "edges": [
+    { "from": "home", "tap": "nav.home.menu", "to": "drawer" },
+    { "from": "drawer", "tap": "nav.drawer.history", "to": "history" },
+    { "from": "drawer", "tap": "nav.drawer.profile", "to": "profile" },
+    { "from": "history", "tap": "action.history.close", "to": "home" },
+    { "from": "profile", "tap": "action.profile.close", "to": "home" }
+  ],
+  "goals": {
+    "view history": "history",
+    "open profile": "profile",
+    "go home": "home"
+  }
+}
